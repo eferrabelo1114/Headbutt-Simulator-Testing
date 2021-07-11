@@ -17,7 +17,9 @@ PlayerProfilesService.Profiles = {}
 
 local ProfileTemplate = {
     Cash = 0;
-
+    Headmuscle = 0;
+    Hammer = "Default";
+    OwnedHammers = {"Default"};
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
@@ -26,6 +28,49 @@ local ProfileStore = ProfileService.GetProfileStore(
 )
 
 --Function Stuff
+
+function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
+    if self.Profiles[player] then
+        local Profile = self.Profiles[player]
+        
+        if Profile.Data.OwnedHammers[newHammer] then
+          Profile:ChangeHammer(newHammer)
+        end
+    end
+end
+
+function PlayerProfilesService:LoadProfile(profile)
+    local ProfileData = profile.Data
+    local ProfilePlayer = profile._Player
+
+    function profile:ChangeHammer(newHammer)
+        self.Data.Hammer = newHammer
+        self._Player:SetAttribute("Hammer", self.Data.Hammer)
+
+        if self._Player.Character then
+        
+        end
+    end
+
+
+    ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
+end
+
+function PlayerProfilesService:LoadPlayerCharacter(player)
+    if self.Profiles[player] then
+        local Profile = self.Profiles[player]
+        local EquippedHammer = Profile.Data.Hammer
+        
+        print("Test")
+        local Character = player.Character or player.CharacterAdded:Wait()
+        print(Character)
+
+        player.CharacterAdded:connect(function()
+            self:LoadPlayerCharacter(player)
+        end)
+    end
+end
+
 function PlayerProfilesService:CreateProfile(player)
     local profile = ProfileStore:LoadProfileAsync(
         "Player_Key"..player.UserId,
@@ -44,9 +89,7 @@ function PlayerProfilesService:CreateProfile(player)
             profile.TempData = {}
 
             PlayerProfilesService.Profiles[player] = profile
-
-            --Begin loading player
-
+            self:LoadPlayerCharacter(player)
         else
            profile:Release() 
         end
