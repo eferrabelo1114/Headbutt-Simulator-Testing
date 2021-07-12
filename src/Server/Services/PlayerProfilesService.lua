@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Knit = require(ReplicatedStorage.Knit)
 local ProfileService = require(ReplicatedStorage.ProfileService)
+local RemoteSignal = require(Knit.Util.Remote.RemoteSignal)
+
 
 --Main Knit service
 local PlayerProfilesService = Knit.CreateService {
@@ -10,16 +12,22 @@ local PlayerProfilesService = Knit.CreateService {
     Client = {};
 }
 
+
 --Variables
 local Players = game:GetService("Players")
 
 PlayerProfilesService.Profiles = {}
+
+--Events
+PlayerProfilesService.Client.PlayerEquippedHammer = RemoteSignal.new()
+PlayerProfilesService.Client.ClientHeadmusclePopup = RemoteSignal.new()
 
 local ProfileTemplate = {
     Cash = 0;
     Headmuscle = 0;
     Hammer = "Default";
     OwnedHammers = {"Default"};
+    Bucket = "Default";
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
@@ -34,20 +42,28 @@ function PlayerProfilesService:EquipHammer(player)
 
     if self.Profiles[player] then
         local Profile = self.Profiles[player]
-        local ProfilePlayer = Profile._Player
         local EquippedHammer = Profile.Data.Hammer
-
-        local newHammer = ReplicatedStorage:FindFirstChild("Hammer"):Clone()
         local HammerData = HammerService:GetHammerData(EquippedHammer)
     
-        newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
-        newHammer.Parent = ProfilePlayer.Backpack
+        local newHammer = nil
 
         if player.Character then
             if player.Character:FindFirstChild("Hammer") then
-                player.Character:FindFirstChild("Hammer"):Remove()
+                newHammer = player.Character:FindFirstChild("Hammer")
             end
         end
+
+        if player.Backpack:FindFirstChild("Hammer") and newHammer == nil then
+            newHammer = player.Backpack:FindFirstChild("Hammer")
+        end
+
+        if newHammer == nil then
+            newHammer = game.ReplicatedStorage:FindFirstChild("Hammer"):Clone()
+            newHammer.Parent = player.Backpack
+            self.Client.PlayerEquippedHammer:Fire(player, newHammer)
+        end
+
+        newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
     end
 end
 
@@ -63,6 +79,9 @@ function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
 end
 
 function PlayerProfilesService:LoadProfile(profile)
+    local HammerService = Knit.Services.HammerService
+    local BucketService = Knit.Services.BucketService
+
     local ProfileData = profile.Data
     local ProfilePlayer = profile._Player
 
@@ -75,7 +94,39 @@ function PlayerProfilesService:LoadProfile(profile)
         end
     end
 
+    function profile:AddHeadmuscleNormal()
+        local HammerData = HammerService:GetHammerData(self.Data.Hammer)
+        local MaxHeadmuscle = self.TempData.MaxHeadmuscle
+        local CurrentHeadmuscule = self.Data.Headmuscle
+
+        local currentStorageSpace = MaxHeadmuscle - CurrentHeadmuscule
+        local headmuscleGained = 0
+
+        headmuscleGained = headmuscleGained + HammerData.HeadmuscleGain
+
+        --Check for stats, pets, etc
+
+        if CurrentHeadmuscule + headmuscleGained <= currentStorageSpace then
+            self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
+        elseif CurrentHeadmuscule + headmuscleGained > currentStorageSpace then
+            headmuscleGained = MaxHeadmuscle - CurrentHeadmuscule
+            self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
+        end
+
+        PlayerProfilesService.Client.ClientHeadmusclePopup:Fire(self._Player, headmuscleGained)
+        ProfilePlayer:SetAttribute("Headmuscle",  self.Data.Headmuscle)
+    end
+
+    --Load Max Headmuscle
+    local Bucket = BucketService:GetBucketData(ProfileData.Bucket)
+
+    profile.TempData.MaxHeadmuscle = profile.TempData.MaxHeadmuscle + Bucket.HeadmuscleStorage
+
+    --Set Attributes
+    ProfilePlayer:SetAttribute("MaxHeadmuscle", profile.TempData.MaxHeadmuscle)
+    ProfilePlayer:SetAttribute("Headmuscle", ProfileData.Headmuscle)
     ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
+    ProfilePlayer:SetAttribute("Bucket", ProfileData.Bucket)
 end
 
 function PlayerProfilesService:LoadPlayerCharacter(player)
@@ -107,6 +158,9 @@ function PlayerProfilesService:CreateProfile(player)
 
         if player:IsDescendantOf(Players) then
             profile.TempData = {}
+            profile.TempData.LastHammerHead = tick()
+            profile.TempData.MaxHeadmuscle = 0
+
             profile._Player = player
 
             PlayerProfilesService.Profiles[player] = profile
