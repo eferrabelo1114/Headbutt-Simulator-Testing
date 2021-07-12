@@ -1,7 +1,7 @@
 
 local MainHammerData = {
     ["Default"] = {
-        Texture = 0;
+        Texture = 16198294;
         Price = 0;
         HeadmuscleGain = 1;
     };

@@ -42,9 +42,16 @@ function PlayerProfilesService:EquipHammer(player)
     
         newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
         newHammer.Parent = ProfilePlayer.Backpack
+
+        if player.Character then
+            if player.Character:FindFirstChild("Hammer") then
+                player.Character:FindFirstChild("Hammer"):Remove()
+            end
+        end
     end
 end
 
+--Client change hammer stuff remote function
 function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
     if self.Profiles[player] then
         local Profile = self.Profiles[player]
