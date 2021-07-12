@@ -2,8 +2,13 @@
 local Knit = require(game:GetService("ReplicatedStorage").Knit)
 local Maid = require(Knit.Util.Maid)
 
+local HammerService = Knit.GetService("HammerService")
+
 --Variables
 local Player = game.Players.LocalPlayer
+
+--Events
+
 
 --Knit Stuff
 local HammerController = Knit.CreateController {
@@ -13,16 +18,18 @@ local HammerController = Knit.CreateController {
 function HammerController:ConnectHammer(hammer)
     print("Connect Hammer")
 
-    self.HammerConnected = true
+    hammer.Activated:Connect(function()
+        HammerService:HammerHead()
+    end)
+
 end
 
 function HammerController:KnitStart()
-    
+    local PlayerProfileService = Knit.GetService("PlayerProfilesService")
 
-    --In the morning re-do hammer to be one hammer tool and just change the skin/hammer type of the one tool
-
-  
-
+    PlayerProfileService.PlayerEquippedHammer:Connect(function(hammer)
+        self:ConnectHammer(hammer)
+    end)
 end
 
 return HammerController
