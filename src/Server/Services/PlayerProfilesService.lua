@@ -12,7 +12,6 @@ local PlayerProfilesService = Knit.CreateService {
     Client = {};
 }
 
-
 --Variables
 local Players = game:GetService("Players")
 
@@ -21,6 +20,7 @@ PlayerProfilesService.Profiles = {}
 --Events
 PlayerProfilesService.Client.PlayerEquippedHammer = RemoteSignal.new()
 PlayerProfilesService.Client.ClientHeadmusclePopup = RemoteSignal.new()
+PlayerProfilesService.Client.LoadPlayerUI = RemoteSignal.new()
 
 local ProfileTemplate = {
     Cash = 0;
@@ -36,7 +36,6 @@ local ProfileStore = ProfileService.GetProfileStore(
 )
 
 --Function Stuff
-
 function PlayerProfilesService:EquipHammer(player)
     local HammerService = Knit.Services.HammerService
 
@@ -102,19 +101,28 @@ function PlayerProfilesService:LoadProfile(profile)
         local currentStorageSpace = MaxHeadmuscle - CurrentHeadmuscule
         local headmuscleGained = 0
 
-        headmuscleGained = headmuscleGained + HammerData.HeadmuscleGain
+        if currentStorageSpace >= 0 then
+            headmuscleGained = headmuscleGained + HammerData.HeadmuscleGain
 
-        --Check for stats, pets, etc
+            --Check for stats, pets, etc
 
-        if CurrentHeadmuscule + headmuscleGained <= currentStorageSpace then
-            self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
-        elseif CurrentHeadmuscule + headmuscleGained > currentStorageSpace then
-            headmuscleGained = MaxHeadmuscle - CurrentHeadmuscule
-            self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
+            if CurrentHeadmuscule + headmuscleGained <= MaxHeadmuscle then
+                self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
+            elseif CurrentHeadmuscule + headmuscleGained > MaxHeadmuscle then
+                headmuscleGained = headmuscleGained - ((CurrentHeadmuscule + headmuscleGained) - MaxHeadmuscle)
+
+                if headmuscleGained > 0 then
+                    self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
+                end
+            end
+
+            if headmuscleGained > 0 then
+                PlayerProfilesService.Client.ClientHeadmusclePopup:Fire(self._Player, headmuscleGained)
+                ProfilePlayer:SetAttribute("Headmuscle",  self.Data.Headmuscle)
+            end
+        else
+           warn(self._Player.Name.." fired addheadmuscle event with full inventory") 
         end
-
-        PlayerProfilesService.Client.ClientHeadmusclePopup:Fire(self._Player, headmuscleGained)
-        ProfilePlayer:SetAttribute("Headmuscle",  self.Data.Headmuscle)
     end
 
     --Load Max Headmuscle
@@ -127,6 +135,7 @@ function PlayerProfilesService:LoadProfile(profile)
     ProfilePlayer:SetAttribute("Headmuscle", ProfileData.Headmuscle)
     ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
     ProfilePlayer:SetAttribute("Bucket", ProfileData.Bucket)
+    ProfilePlayer:SetAttribute("Cash", ProfileData.Cash)
 end
 
 function PlayerProfilesService:LoadPlayerCharacter(player)
@@ -134,6 +143,7 @@ function PlayerProfilesService:LoadPlayerCharacter(player)
         local Profile = self.Profiles[player]
         local Character = player.Character or player.CharacterAdded:Wait()
 
+        self.Client.LoadPlayerUI:Fire(player)
         self:EquipHammer(player)
 
         player.CharacterAdded:connect(function()

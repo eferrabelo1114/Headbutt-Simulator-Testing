@@ -19,7 +19,11 @@ function HammerController:ConnectHammer(hammer)
     print("Connect Hammer")
 
     hammer.Activated:Connect(function()
-        HammerService:HammerHead()
+        if Player:GetAttribute("Headmuscle") < Player:GetAttribute("MaxHeadmuscle") then
+            HammerService:HammerHead()
+        else
+            
+        end
     end)
 
 end
