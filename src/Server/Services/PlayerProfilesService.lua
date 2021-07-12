@@ -29,6 +29,22 @@ local ProfileStore = ProfileService.GetProfileStore(
 
 --Function Stuff
 
+function PlayerProfilesService:EquipHammer(player)
+    local HammerService = Knit.Services.HammerService
+
+    if self.Profiles[player] then
+        local Profile = self.Profiles[player]
+        local ProfilePlayer = Profile._Player
+        local EquippedHammer = Profile.Data.Hammer
+
+        local newHammer = ReplicatedStorage:FindFirstChild("Hammer"):Clone()
+        local HammerData = HammerService:GetHammerData(EquippedHammer)
+    
+        newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
+        newHammer.Parent = ProfilePlayer.Backpack
+    end
+end
+
 function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
     if self.Profiles[player] then
         local Profile = self.Profiles[player]
@@ -40,8 +56,6 @@ function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
 end
 
 function PlayerProfilesService:LoadProfile(profile)
-    local HammerService = Knit.Services.HammerService
-
     local ProfileData = profile.Data
     local ProfilePlayer = profile._Player
 
@@ -50,25 +64,19 @@ function PlayerProfilesService:LoadProfile(profile)
         self._Player:SetAttribute("Hammer", self.Data.Hammer)
 
         if self._Player.Character then
-            
+            self:EquipHammer(ProfilePlayer)
         end
     end
 
-    local newHammer = ReplicatedStorage:FindFirstChild("Hammer"):Clone()
-    local HammerData = HammerService:GetHammerData(ProfileData.HAmmer)
-
-    newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
-
-    newHammer.Parent = ProfilePlayer.Backpack
     ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
 end
 
 function PlayerProfilesService:LoadPlayerCharacter(player)
     if self.Profiles[player] then
         local Profile = self.Profiles[player]
-        local EquippedHammer = Profile.Data.Hammer
-
         local Character = player.Character or player.CharacterAdded:Wait()
+
+        self:EquipHammer(player)
 
         player.CharacterAdded:connect(function()
             self:LoadPlayerCharacter(player)
@@ -92,8 +100,10 @@ function PlayerProfilesService:CreateProfile(player)
 
         if player:IsDescendantOf(Players) then
             profile.TempData = {}
+            profile._Player = player
 
             PlayerProfilesService.Profiles[player] = profile
+            self:LoadProfile(profile)
             self:LoadPlayerCharacter(player)
         else
            profile:Release() 
