@@ -23,6 +23,7 @@ PlayerProfilesService.Client.ClientHeadmusclePopup = RemoteSignal.new()
 local ProfileTemplate = {
     Cash = 0;
     Headmuscle = 0;
+    TotalHeadmuscle = 0;
     Hammer = "Default";
     OwnedHammers = {"Default"};
     Bucket = "Default";
@@ -91,6 +92,25 @@ function PlayerProfilesService:LoadProfile(profile)
         end
     end
 
+    function profile:GiveCash(amount)
+        self.Data.Cash = self.Data.Cash + amount
+        self._Player:SetAttribute("Cash", self.Data.Cash)
+    end
+
+    function profile:SellHeadmuscle()
+        if self.Data.Headmuscle > 0 then
+            local rewardCash = 0
+
+            --Check if there are any selling bonus
+            
+            rewardCash = self.Data.Headmuscle
+            self.Data.Headmuscle = 0
+
+            self._Player:SetAttribute("Headmuscle", self.Data.Headmuscle)
+            self:GiveCash(rewardCash)
+        end
+    end
+
     function profile:AddHeadmuscleNormal()
         local HammerData = HammerService:GetHammerData(self.Data.Hammer)
         local MaxHeadmuscle = self.TempData.MaxHeadmuscle
@@ -116,6 +136,7 @@ function PlayerProfilesService:LoadProfile(profile)
 
             if headmuscleGained > 0 then
                 PlayerProfilesService.Client.ClientHeadmusclePopup:Fire(self._Player, headmuscleGained)
+                self.Data.TotalHeadmuscle = self.Data.TotalHeadmuscle + headmuscleGained
                 ProfilePlayer:SetAttribute("Headmuscle",  self.Data.Headmuscle)
             end
         else

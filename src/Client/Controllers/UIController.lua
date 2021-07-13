@@ -38,15 +38,24 @@ function UIController:LoadCurrencyHud(MainUI)
     local PlayerMaxHeadmuscle = Player:GetAttribute("MaxHeadmuscle")
     local PlayerCash = Player:GetAttribute("Cash")
 
-    print(Currency:GetChildren())
-    print(Currency.Backpack.Amount.Text)
-
     Currency.Backpack.Amount.Text = FormatLib.FormatCompact(PlayerHeadmuscle).."/"..FormatLib.FormatCompact(PlayerMaxHeadmuscle)
     Currency.Money.Amount.Text = "$"..FormatLib.FormatCompact(PlayerCash)
 end
 
 function UIController:OpenMenu(Menu)
+    if UIController.WindowOpen then
+        UIController.WindowOpen.Visible = false
+    end
 
+    UIController.WindowOpen = Menu
+    UIController.WindowOpen.Visible = true
+end
+
+function UIController:ResetUI()
+    if UIController.WindowOpen then
+        UIController.WindowOpen.Visible = false
+        UIController.WindowOpen = nil
+    end
 end
 
 function UIController:ConnectUI()
@@ -61,6 +70,12 @@ end
 
 function UIController:KnitStart()
     self:ConnectUI()
+
+    Player.CharacterAdded:connect(function()
+        Player.Character.Humanoid.Died:connect(function()
+            self:ResetUI()
+        end)
+    end)
 end
 
 
