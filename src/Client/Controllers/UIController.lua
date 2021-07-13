@@ -8,6 +8,7 @@ local Maid = require(Knit.Util.Maid)
 
 --Variables
 local Player = game.Players.LocalPlayer
+local UIMaid = Maid.new()
 
 --Knit Stuff
 local UIController = Knit.CreateController {
@@ -18,25 +19,27 @@ local UIController = Knit.CreateController {
 UIController.WindowOpen = nil
 
 function UIController:LoadCurrencyHud(MainUI)
-    local HUD = MainUI.UI.HUD
+    local HUD = MainUI:FindFirstChild("UI"):FindFirstChild("HUD")
+    local Currency = HUD:WaitForChild("Currency")
 
-    local Currency = HUD.Currency
-
-    Player:GetAttributeChangedSignal("Headmuscle"):Connect(function()
+    UIMaid:GiveTask(Player:GetAttributeChangedSignal("Headmuscle"):Connect(function()
         local PlayerHeadmuscle = Player:GetAttribute("Headmuscle")
         local PlayerMaxHeadmuscle = Player:GetAttribute("MaxHeadmuscle")
         Currency.Backpack.Amount.Text = FormatLib.FormatCompact(PlayerHeadmuscle).."/"..FormatLib.FormatCompact(PlayerMaxHeadmuscle)
-    end)
+    end))
 
-    Player:GetAttributeChangedSignal("Cash"):Connect(function()
+    UIMaid:GiveTask(Player:GetAttributeChangedSignal("Cash"):Connect(function()
         local PlayerCash = Player:GetAttribute("Cash")
         Currency.Money.Amount.Text = "$"..FormatLib.FormatCompact(PlayerCash)
-    end)
+    end))
 
     --Load Currency Hud
     local PlayerHeadmuscle = Player:GetAttribute("Headmuscle")
     local PlayerMaxHeadmuscle = Player:GetAttribute("MaxHeadmuscle")
     local PlayerCash = Player:GetAttribute("Cash")
+
+    print(Currency:GetChildren())
+    print(Currency.Backpack.Amount.Text)
 
     Currency.Backpack.Amount.Text = FormatLib.FormatCompact(PlayerHeadmuscle).."/"..FormatLib.FormatCompact(PlayerMaxHeadmuscle)
     Currency.Money.Amount.Text = "$"..FormatLib.FormatCompact(PlayerCash)
@@ -50,19 +53,14 @@ function UIController:ConnectUI()
     local ButtonController = Knit.GetController("UI_ButtonController")
 
     local PlayerGui = Player.PlayerGui
-    local MainUI = PlayerGui.Main
+    local MainUI = PlayerGui:WaitForChild("Main")
 
     --Connect HUD
    self:LoadCurrencyHud(MainUI)
-
 end
 
 function UIController:KnitStart()
-    local ProfileService = Knit.GetService("PlayerProfilesService")
- 
-    ProfileService.LoadPlayerUI:Connect(function()
-        self:ConnectUI()
-    end)
+    self:ConnectUI()
 end
 
 

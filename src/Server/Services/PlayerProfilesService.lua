@@ -5,7 +5,6 @@ local Knit = require(ReplicatedStorage.Knit)
 local ProfileService = require(ReplicatedStorage.ProfileService)
 local RemoteSignal = require(Knit.Util.Remote.RemoteSignal)
 
-
 --Main Knit service
 local PlayerProfilesService = Knit.CreateService {
     Name = "PlayerProfilesService";
@@ -20,7 +19,6 @@ PlayerProfilesService.Profiles = {}
 --Events
 PlayerProfilesService.Client.PlayerEquippedHammer = RemoteSignal.new()
 PlayerProfilesService.Client.ClientHeadmusclePopup = RemoteSignal.new()
-PlayerProfilesService.Client.LoadPlayerUI = RemoteSignal.new()
 
 local ProfileTemplate = {
     Cash = 0;
@@ -143,7 +141,6 @@ function PlayerProfilesService:LoadPlayerCharacter(player)
         local Profile = self.Profiles[player]
         local Character = player.Character or player.CharacterAdded:Wait()
 
-        self.Client.LoadPlayerUI:Fire(player)
         self:EquipHammer(player)
 
         player.CharacterAdded:connect(function()
