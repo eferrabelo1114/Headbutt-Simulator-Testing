@@ -1,5 +1,6 @@
 --Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PhysicsService = game:GetService("PhysicsService")
 
 local Knit = require(ReplicatedStorage.Knit)
 local ProfileService = require(ReplicatedStorage.ProfileService)
@@ -27,6 +28,7 @@ local ProfileTemplate = {
     Hammer = "Default";
     OwnedHammers = {"Default"};
     Bucket = "Default";
+    Rebirth = 0;
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
@@ -62,6 +64,32 @@ function PlayerProfilesService:EquipHammer(player)
         end
 
         newHammer.Handle.Mesh.TextureId = "rbxassetid://"..HammerData.Texture
+    end
+end
+
+--Function Stuff
+function PlayerProfilesService:EquipBucket(player)
+    local HammerService = Knit.Services.BucketService
+
+    if self.Profiles[player] then
+        local Profile = self.Profiles[player]
+        local EquippedBucket = Profile.Data.Bucket
+        local BucketData = HammerService:GetBucketData(EquippedBucket)
+    
+        local newBucket = nil
+
+        if player.Character then
+            if player.Character:FindFirstChild("Bucket") then
+                newBucket = player.Character:FindFirstChild("Bucket")
+            end
+        end
+
+        if newBucket == nil then
+            newBucket = game.ReplicatedStorage:FindFirstChild("Bucket"):Clone()
+            player.Character.Humanoid:AddAccessory(newBucket)
+        end
+
+        newBucket.Handle.Mesh.TextureId = "rbxassetid://"..BucketData.Texture
     end
 end
 
@@ -155,6 +183,43 @@ function PlayerProfilesService:LoadProfile(profile)
     ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
     ProfilePlayer:SetAttribute("Bucket", ProfileData.Bucket)
     ProfilePlayer:SetAttribute("Cash", ProfileData.Cash)
+    ProfilePlayer:SetAttribute("Rebirths", ProfileData.Rebirth)
+    ProfilePlayer:SetAttribute("TotalHeadmuscle", profile.TempData.MaxHeadmuscle)
+    ProfilePlayer:SetAttribute("HammerDelay", profile.TempData.HammerDelay)
+
+    --Leaderboards
+    local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = ProfilePlayer
+
+    local TotalHeadmuscleLEaderstat = Instance.new("IntValue")
+    TotalHeadmuscleLEaderstat.Value = ProfilePlayer:GetAttribute("TotalHeadmuscle")
+    TotalHeadmuscleLEaderstat.Name = "Total Headmuscle"
+    TotalHeadmuscleLEaderstat.Parent = leaderstats
+
+    ProfilePlayer:GetAttributeChangedSignal("TotalHeadmuscle"):connect(function()
+        TotalHeadmuscleLEaderstat.Value = ProfilePlayer:GetAttribute("TotalHeadmuscle")
+    end)
+
+    local CashLeaderstat = Instance.new("IntValue")
+    CashLeaderstat.Value = ProfilePlayer:GetAttribute("Cash")
+    CashLeaderstat.Name = "Cash"
+    CashLeaderstat.Parent = leaderstats
+
+    ProfilePlayer:GetAttributeChangedSignal("Cash"):connect(function()
+        CashLeaderstat.Value = ProfilePlayer:GetAttribute("Cash")
+    end)
+
+    local RebirthLeaderstat = Instance.new("IntValue")
+    RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
+    RebirthLeaderstat.Name = "Rebirths"
+    RebirthLeaderstat.Parent = leaderstats
+
+    ProfilePlayer:GetAttributeChangedSignal("Rebirths"):connect(function()
+        RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
+    end)
+
+ 
 end
 
 function PlayerProfilesService:LoadPlayerCharacter(player)
@@ -162,7 +227,10 @@ function PlayerProfilesService:LoadPlayerCharacter(player)
         local Profile = self.Profiles[player]
         local Character = player.Character or player.CharacterAdded:Wait()
 
+        PhysicsService:SetPartCollisionGroup(Character.Head, "Heads")
+
         self:EquipHammer(player)
+        self:EquipBucket(player)
 
         player.CharacterAdded:connect(function()
             self:LoadPlayerCharacter(player)
@@ -185,9 +253,11 @@ function PlayerProfilesService:CreateProfile(player)
         end)
 
         if player:IsDescendantOf(Players) then
+
             profile.TempData = {}
             profile.TempData.LastHammerHead = tick()
             profile.TempData.MaxHeadmuscle = 0
+            profile.TempData.HammerDelay = 0.7
 
             profile._Player = player
 

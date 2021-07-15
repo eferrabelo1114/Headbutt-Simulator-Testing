@@ -15,6 +15,8 @@ local ZoneManagementService = Knit.CreateService {
 --Variables
 local SellRegion = Zone.new(workspace.Touch.Sell)
 
+ZoneManagementService.Client.Feedback = RemoteSignal.new()
+
 SellRegion.playerEntered:Connect(function(player)
     if ProfileService.Profiles[player] then
         local Profile = ProfileService.Profiles[player]
@@ -23,6 +25,7 @@ SellRegion.playerEntered:Connect(function(player)
             if player.Character.Humanoid.Health > 0 then
                 if Profile.Data.Headmuscle > 0 then
                     Profile:SellHeadmuscle()
+                    ZoneManagementService.Client.Feedback:Fire(player)
                 end
             end
         end

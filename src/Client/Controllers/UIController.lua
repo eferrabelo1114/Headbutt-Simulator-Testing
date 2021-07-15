@@ -5,10 +5,16 @@ local TweenService = game:GetService("TweenService")
 local Knit = require(ReplicatedStorage.Knit)
 local FormatLib = require(ReplicatedStorage.Modules.FormatLibrary)
 local Maid = require(Knit.Util.Maid)
+local Tween = require(Knit.Util.Tween)
+local Sounds = require(Knit.Util.Sounds)
 
 --Variables
 local Player = game.Players.LocalPlayer
 local UIMaid = Maid.new()
+
+local ActiveElements = {}
+--Tweems
+local UIHoverTween = TweenInfo.new(0)
 
 --Knit Stuff
 local UIController = Knit.CreateController {
@@ -17,6 +23,68 @@ local UIController = Knit.CreateController {
 
 --PublicVariables
 UIController.WindowOpen = nil
+
+function UIController:CreateHovertype(UIElement) 
+    ActiveElements[UIElement] = {}
+    ActiveElements[UIElement].OriginalPosition = UIElement.Position
+    ActiveElements[UIElement].MouseIn = false
+    ActiveElements[UIElement].MouseClicked = false
+    ActiveElements[UIElement].Maid = Maid.new()
+
+    local function connectHoverAnims()
+        if UIElement.Visible == true then
+            --Mouse Enters Task
+            ActiveElements[UIElement].Maid:GiveTask(UIElement.MouseEnter:connect(function()
+                if not ActiveElements[UIElement].MouseIn then
+                    Tween:tween(UIElement, {"Position"}, {UDim2.new(ActiveElements[UIElement].OriginalPosition.X.Scale, ActiveElements[UIElement].OriginalPosition.X.Offset, ActiveElements[UIElement].OriginalPosition.Y.Scale, ActiveElements[UIElement].OriginalPosition.Y.Offset - 3)}, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    Sounds:PlaySound("Hover", Player)
+                    ActiveElements[UIElement].MouseIn = true
+                end
+            end))
+
+            --Mouse Leaves Task
+            ActiveElements[UIElement].Maid:GiveTask(UIElement.MouseLeave:connect(function()
+                if ActiveElements[UIElement].MouseIn then
+                    Tween:tween(UIElement, {"Position"}, {ActiveElements[UIElement].OriginalPosition}, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    ActiveElements[UIElement].MouseIn = false
+                end
+            end))
+
+            --Mouse Click Task
+            ActiveElements[UIElement].Maid:GiveTask(UIElement.MouseButton1Down:connect(function()
+                if ActiveElements[UIElement].MouseIn and not ActiveElements[UIElement].MouseClicked then
+                    ActiveElements[UIElement].MouseClicked = true
+                    local tweenDown = Tween:tween(UIElement, {"Position"}, {UDim2.new(ActiveElements[UIElement].OriginalPosition.X.Scale, ActiveElements[UIElement].OriginalPosition.X.Offset, ActiveElements[UIElement].OriginalPosition.Y.Scale, ActiveElements[UIElement].OriginalPosition.Y.Offset + 3)}, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    Sounds:PlaySound("Click", Player)
+                    tweenDown.Completed:Wait()
+                    Tween:tween(UIElement, {"Position"}, {UDim2.new(ActiveElements[UIElement].OriginalPosition.X.Scale, ActiveElements[UIElement].OriginalPosition.X.Offset, ActiveElements[UIElement].OriginalPosition.Y.Scale, ActiveElements[UIElement].OriginalPosition.Y.Offset - 3)}, 0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    ActiveElements[UIElement].MouseClicked = false
+                end
+            end))
+
+        end
+    end
+
+    ActiveElements[UIElement].MainEvent = UIElement.Changed:connect(function()
+        if UIElement.Visible == true then
+            connectHoverAnims()
+        else
+            ActiveElements[UIElement].Maid:DoCleaning()
+        end
+    end)
+
+    connectHoverAnims()
+end
+
+function UIController:LoadUIAnimations(MainUI)
+    for _,UIElement in pairs(MainUI:GetDescendants()) do
+        if UIElement:IsA("ImageButton") or UIElement:IsA("TextButton") then
+            if UIElement:GetAttribute("Hover_Type") ~= nil then
+                self:CreateHovertype(UIElement)
+            end
+        end
+    end
+end
 
 function UIController:LoadCurrencyHud(MainUI)
     local HUD = MainUI:FindFirstChild("UI"):FindFirstChild("HUD")
@@ -64,6 +132,13 @@ function UIController:ConnectUI()
     local PlayerGui = Player.PlayerGui
     local MainUI = PlayerGui:WaitForChild("Main")
 
+    for element,elementData in pairs(ActiveElements) do
+        elementData.MainEvent:Disconnect()
+    end
+    ActiveElements = {}
+
+    self:LoadUIAnimations(MainUI)
+
     --Connect HUD
    self:LoadCurrencyHud(MainUI)
 end
@@ -72,6 +147,7 @@ function UIController:KnitStart()
     self:ConnectUI()
 
     Player.CharacterAdded:connect(function()
+        Player.Character:WaitForChild("Humanoid")
         Player.Character.Humanoid.Died:connect(function()
             self:ResetUI()
         end)
