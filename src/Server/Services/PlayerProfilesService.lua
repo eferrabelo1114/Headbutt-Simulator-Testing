@@ -17,6 +17,9 @@ local Players = game:GetService("Players")
 
 PlayerProfilesService.Profiles = {}
 
+--Public Variables
+local Default_Hitspeed = 0.3
+
 --Events
 PlayerProfilesService.Client.PlayerEquippedHammer = RemoteSignal.new()
 PlayerProfilesService.Client.ClientHeadmusclePopup = RemoteSignal.new()
@@ -257,7 +260,7 @@ function PlayerProfilesService:CreateProfile(player)
             profile.TempData = {}
             profile.TempData.LastHammerHead = tick()
             profile.TempData.MaxHeadmuscle = 0
-            profile.TempData.HammerDelay = 0.7
+            profile.TempData.HammerDelay = Default_Hitspeed
 
             profile._Player = player
 
