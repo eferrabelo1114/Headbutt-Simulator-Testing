@@ -278,7 +278,6 @@ function PlayerProfilesService:CreateProfile(player)
 end
 
 function PlayerProfilesService:KnitStart()
-    
 
     --Connect profile stuff
     Players.PlayerAdded:connect(function(player)
