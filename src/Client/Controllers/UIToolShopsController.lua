@@ -34,7 +34,7 @@ local UIToolShopsController = Knit.CreateController {
 
 function UIToolShopsController:LoadShopsInfo(MainUI)
     local Pages = MainUI.UI.Pages
-
+    
     local Shops = {
         ["Hammer"] = {
             ["UI"] = Pages:FindFirstChild("HammerShop");
@@ -45,12 +45,10 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
         }
     }
 
-    local function playerOwnsTool(ToolType, ToolName)
+    local function playerOwnsTool(ToolType, ToolName, PlayerOwnedHammers)
         local ownsTool = false
 
-        local PlayerTools = HttpService:JSONDecode(Player:GetAttribute(Shops[ToolType].Attribute))
-
-        for _,ownedTool in pairs(PlayerTools) do
+        for _,ownedTool in pairs(PlayerOwnedHammers) do
             if ownedTool == ToolName then
                 ownsTool = true
             end
@@ -61,13 +59,14 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
 
     for toolType,toolTypeData in pairs(Shops) do
         local mainScrollElements = toolTypeData.UI.Main.Scroll:GetChildren()
-
+        local PlayerTools = HttpService:JSONDecode(Player:GetAttribute(Shops[toolType].Attribute))
+        
         for _,element in pairs(mainScrollElements) do
             if element:GetAttribute(toolType) ~= nil then
                 local ToolName = element:GetAttribute(toolType)
                 local ToolData = toolTypeData.Data[ToolName]
 
-                local OwnsTool = playerOwnsTool(toolType, ToolName)
+                local OwnsTool = playerOwnsTool(toolType, ToolName, PlayerTools)
 
                 if not OwnsTool then
                     element.Buy.Amount.Text = ToolData.Price
@@ -120,7 +119,7 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
             end
         end
 
-        local layout: LayoutUtil.List = LayoutUtil.new(toolTypeData.UI.Main.Scroll) -- could be a ScrollingFrame or UIListLayout
+       -- local layout: LayoutUtil.List = LayoutUtil.new(toolTypeData.UI.Main.Scroll) -- could be a ScrollingFrame or UIListLayout
     end
 end
 

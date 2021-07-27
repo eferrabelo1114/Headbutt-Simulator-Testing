@@ -83,6 +83,7 @@ function UIController:LoadUIAnimations(MainUI)
             end
         elseif UIElement.Parent.Name == "Pages" then
             UIPages[UIElement.Name] = UIElement
+            UIElement.Visible = false
         end
     end
 end
