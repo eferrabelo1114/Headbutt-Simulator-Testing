@@ -10,6 +10,8 @@
 	Loader.LoadDescendants(parent: Instance): module[]
 
 --]]
+local RunService = game:GetService("RunService")
+local isClient = RunService:IsClient()
 
 
 local Loader = {}
@@ -21,6 +23,13 @@ function Loader.LoadChildren(parent)
 		if (child:IsA("ModuleScript")) then
 			local m = require(child)
 			table.insert(modules, m)
+
+			if isClient then
+				print("[CLIENT] Loaded "..child.Name)
+			else
+				print("[SERVER] Loaded "..child.Name)
+			end
+
 		end
 	end
 	return modules

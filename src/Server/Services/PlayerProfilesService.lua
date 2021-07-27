@@ -1,10 +1,14 @@
 --Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PhysicsService = game:GetService("PhysicsService")
+local HttpService = game:GetService("HttpService")
 
 local Knit = require(ReplicatedStorage.Knit)
 local ProfileService = require(ReplicatedStorage.ProfileService)
 local RemoteSignal = require(Knit.Util.Remote.RemoteSignal)
+
+--Util
+local Tween = require(Knit.Util.Tween)
 
 --Main Knit service
 local PlayerProfilesService = Knit.CreateService {
@@ -16,6 +20,11 @@ local PlayerProfilesService = Knit.CreateService {
 local Players = game:GetService("Players")
 
 PlayerProfilesService.Profiles = {}
+
+local ToolTables = {
+    ["Hammer"] = "OwnedHammers";
+    ["Bucket"] = "OwnedBuckets";
+}
 
 --Public Variables
 local Default_Hitspeed = 0.3
@@ -31,6 +40,7 @@ local ProfileTemplate = {
     Hammer = "Default";
     OwnedHammers = {"Default"};
     Bucket = "Default";
+    OwnedBuckets = {"Default"};
     Rebirth = 0;
 }
 
@@ -97,14 +107,19 @@ function PlayerProfilesService:EquipBucket(player)
 end
 
 --Client change hammer stuff remote function
-function PlayerProfilesService.Client:ChangeHammer(player, newHammer)
-    if self.Profiles[player] then
-        local Profile = self.Profiles[player]
+function PlayerProfilesService.Client:ChangeTool(player, ToolType, ToolName)
+    local Success = false
+
+    if PlayerProfilesService.Profiles[player] then
+        local Profile = PlayerProfilesService.Profiles[player]
         
-        if Profile.Data.OwnedHammers[newHammer] then
-          Profile:ChangeHammer(newHammer)
+        if Profile:OwnsTool(ToolName, ToolType) then
+            Profile:ChangeTool(ToolName, ToolType)
+            Success = true
         end
     end
+
+    return Success
 end
 
 function PlayerProfilesService:LoadProfile(profile)
@@ -114,17 +129,70 @@ function PlayerProfilesService:LoadProfile(profile)
     local ProfileData = profile.Data
     local ProfilePlayer = profile._Player
 
-    function profile:ChangeHammer(newHammer)
-        self.Data.Hammer = newHammer
-        self._Player:SetAttribute("Hammer", self.Data.Hammer)
+    --Set camera max zoom distance
+    profile._Player.CameraMaxZoomDistance = math.huge
+
+    --Update Player's Character head
+    function profile:loadPlayerHead()
+        local Player = self._Player
+
+        if Player.Character ~= nil then
+            local Char = Player.Character
+            local Humanoid =  Char:WaitForChild("Humanoid")
+            local Head = Char:WaitForChild("Head")
+
+            if Char.Humanoid.Health > 0 then
+
+                PhysicsService:SetPartCollisionGroup(Head, "Heads")
+                Head.Transparency = 0.5
+                Head.Massless = true
+
+            end
+        end
+    end
+
+    function profile:OwnsTool(ToolName, ToolType)
+       local Owned = false
+       local Table = ToolTables[ToolType]
+
+        for _, ownedTool in pairs(self.Data[Table]) do
+            if ownedTool == ToolName then
+                Owned = true
+            end
+        end
+
+        return Owned
+    end
+
+    function profile:PurchaseTool(ToolName, ToolType, Price)
+        local Table = ToolTables[ToolType]
+
+        self:RemoveCash(Price)
+        table.insert(self.Data[Table], ToolName)
+        self._Player:SetAttribute(Table, HttpService:JSONEncode(self.Data[Table]))
+     end
+
+    function profile:ChangeTool(ToolName, ToolType)
+        self.Data[ToolType] = ToolName
+        self._Player:SetAttribute(ToolType, ToolName)
 
         if self._Player.Character then
-            self:EquipHammer(ProfilePlayer)
+            if ToolType == "Hammer" then
+                PlayerProfilesService:EquipHammer(ProfilePlayer)
+            elseif ToolType == "Bucket" then
+                --Equip Buckket
+                print("Equip Bucket")
+            end
         end
     end
 
     function profile:GiveCash(amount)
         self.Data.Cash = self.Data.Cash + amount
+        self._Player:SetAttribute("Cash", self.Data.Cash)
+    end
+
+    function profile:RemoveCash(amount)
+        self.Data.Cash = self.Data.Cash - amount
         self._Player:SetAttribute("Cash", self.Data.Cash)
     end
 
@@ -181,12 +249,16 @@ function PlayerProfilesService:LoadProfile(profile)
     profile.TempData.MaxHeadmuscle = profile.TempData.MaxHeadmuscle + Bucket.HeadmuscleStorage
 
     --Set Attributes
-    ProfilePlayer:SetAttribute("MaxHeadmuscle", profile.TempData.MaxHeadmuscle)
     ProfilePlayer:SetAttribute("Headmuscle", ProfileData.Headmuscle)
     ProfilePlayer:SetAttribute("Hammer", ProfileData.Hammer)
     ProfilePlayer:SetAttribute("Bucket", ProfileData.Bucket)
     ProfilePlayer:SetAttribute("Cash", ProfileData.Cash)
     ProfilePlayer:SetAttribute("Rebirths", ProfileData.Rebirth)
+
+    ProfilePlayer:SetAttribute("OwnedHammers", HttpService:JSONEncode(ProfileData.OwnedHammers))
+    ProfilePlayer:SetAttribute("OwnedBuckets", HttpService:JSONEncode(ProfileData.OwnedBuckets))
+
+    ProfilePlayer:SetAttribute("MaxHeadmuscle", profile.TempData.MaxHeadmuscle)
     ProfilePlayer:SetAttribute("TotalHeadmuscle", profile.TempData.MaxHeadmuscle)
     ProfilePlayer:SetAttribute("HammerDelay", profile.TempData.HammerDelay)
 
@@ -229,13 +301,14 @@ function PlayerProfilesService:LoadPlayerCharacter(player)
     if self.Profiles[player] then
         local Profile = self.Profiles[player]
         local Character = player.Character or player.CharacterAdded:Wait()
-
-        PhysicsService:SetPartCollisionGroup(Character.Head, "Heads")
+        local Humanoid = Character:WaitForChild("Humanoid")
 
         self:EquipHammer(player)
         self:EquipBucket(player)
 
-        player.CharacterAdded:connect(function()
+        Profile:loadPlayerHead()
+
+        player.CharacterAppearanceLoaded:connect(function()
             self:LoadPlayerCharacter(player)
         end)
     end
