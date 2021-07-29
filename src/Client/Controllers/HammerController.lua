@@ -71,7 +71,7 @@ function HammerController:ConnectHammer(hammer)
     end)
 end
 
-function HammerController:KnitStart()
+function HammerController:KnitInit()
     local PlayerProfileService = Knit.GetService("PlayerProfilesService")
 
     PlayerProfileService.PlayerEquippedHammer:Connect(function(hammer)

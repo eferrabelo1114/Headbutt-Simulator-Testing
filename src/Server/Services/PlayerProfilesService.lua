@@ -350,7 +350,7 @@ function PlayerProfilesService:CreateProfile(player)
 
 end
 
-function PlayerProfilesService:KnitStart()
+function PlayerProfilesService:KnitInit()
 
     --Connect profile stuff
     Players.PlayerAdded:connect(function(player)

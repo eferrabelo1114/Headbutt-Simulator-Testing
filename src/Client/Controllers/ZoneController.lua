@@ -25,7 +25,7 @@ local ZoneController = Knit.CreateController {
 
 
 
-function ZoneController:KnitStart()
+function ZoneController:KnitInit()
     local UIController = Knit.GetController("UIController")
 
     HammerShop.localPlayerEntered:Connect(function()

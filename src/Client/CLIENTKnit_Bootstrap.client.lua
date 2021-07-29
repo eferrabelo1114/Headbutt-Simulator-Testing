@@ -1,7 +1,19 @@
+--Services
+local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
 local Knit = require(ReplicatedStorage.Knit)
 
+local Player = game.Players.LocalPlayer
+
 Knit.AddControllers(script.Parent:WaitForChild("Controllers"))
-print("[CLIENT] Finished loading...")
+
+
+ContentProvider:PreloadAsync(ReplicatedStorage.Sounds:GetChildren())
+ContentProvider:PreloadAsync(ReplicatedStorage.Animations:GetChildren())
+
+
+
+print(Player:GetAttributes())
 
 Knit.Start():Catch(warn)

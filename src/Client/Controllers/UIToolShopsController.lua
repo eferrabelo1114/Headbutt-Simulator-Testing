@@ -14,7 +14,6 @@ local ProfileService = Knit.GetService("PlayerProfilesService")
 local FormatLib = require(ReplicatedStorage.Modules.FormatLibrary)
 local HammerLib = require(ReplicatedStorage.Modules.HammerLibrary)
 local BucketLib = require(ReplicatedStorage.Modules.BucketLibrary)
-local LayoutUtil = require(ReplicatedStorage.Modules.LayoutUtil)
 
 --Variables
 local Player = game.Players.LocalPlayer
@@ -59,6 +58,8 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
 
     for toolType,toolTypeData in pairs(Shops) do
         local mainScrollElements = toolTypeData.UI.Main.Scroll:GetChildren()
+        --print(HttpService:JSONDecode(Player:GetAttribute(Shops[toolType].Attribute)))
+
         local PlayerTools = HttpService:JSONDecode(Player:GetAttribute(Shops[toolType].Attribute))
         
         for _,element in pairs(mainScrollElements) do
@@ -120,19 +121,18 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
         end
 
        -- local layout: LayoutUtil.List = LayoutUtil.new(toolTypeData.UI.Main.Scroll) -- could be a ScrollingFrame or UIListLayout
+       UIMaid:GiveTask(Player.AttributeChanged:connect(function(attributeName)
+            if attributeName == "OwnedHammers" or attributeName == "OwnedBuckets" or attributeName == "Hammer" or attributeName == "Bucket" then
+                UIMaid:DoCleaning()
+                self:LoadShopsInfo(MainUI)
+            end
+        end))
     end
 end
 
 function UIToolShopsController:KnitStart()
     local PlayerGui = Player.PlayerGui
     local MainUI = PlayerGui:WaitForChild("Main")
-
-    Player.AttributeChanged:connect(function(attributeName)
-        if attributeName == "OwnedHammers" or attributeName == "OwnedBuckets" or attributeName == "Hammer" or attributeName == "Bucket" then
-            UIMaid:DoCleaning()
-            self:LoadShopsInfo(MainUI)
-        end
-    end)
 
     self:LoadShopsInfo(MainUI)
 end

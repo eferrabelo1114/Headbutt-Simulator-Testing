@@ -173,7 +173,7 @@ function UIController:ConnectUI()
    self:LoadCurrencyHud(MainUI)
 end
 
-function UIController:KnitStart()
+function UIController:KnitInit()
     self:ConnectUI()
 
     Player.CharacterAdded:connect(function()
