@@ -13,7 +13,4 @@ ContentProvider:PreloadAsync(ReplicatedStorage.Sounds:GetChildren())
 ContentProvider:PreloadAsync(ReplicatedStorage.Animations:GetChildren())
 
 
-
-print(Player:GetAttributes())
-
 Knit.Start():Catch(warn)
