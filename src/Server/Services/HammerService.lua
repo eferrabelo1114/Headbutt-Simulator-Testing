@@ -1,5 +1,6 @@
 --Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local Knit = require(ReplicatedStorage.Knit)
 local HammerLibrary = require(ReplicatedStorage.Modules.HammerLibrary)

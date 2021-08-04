@@ -2,6 +2,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PhysicsService = game:GetService("PhysicsService")
 local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local Knit = require(ReplicatedStorage.Knit)
 local ProfileService = require(ReplicatedStorage.ProfileService)
@@ -122,6 +123,28 @@ function PlayerProfilesService.Client:ChangeTool(player, ToolType, ToolName)
     return Success
 end
 
+--Client requested to sell anywhere
+function PlayerProfilesService.Client:SellAnywhere(player)
+    local Success = false
+    local ZoneManagementService = Knit.GetService("ZoneManagementService")
+
+    if PlayerProfilesService.Profiles[player] then
+        local Profile = PlayerProfilesService.Profiles[player]
+        
+        --Check if they own the gamepass
+        if MarketplaceService:UserOwnsGamePassAsync(player.UserId, 20662661) or Profile.TempData.CanSellAnywhere then
+            Profile:SellHeadmuscle()
+            ZoneManagementService.Client.Feedback:Fire(player)
+            Success = true 
+        else
+            MarketplaceService:PromptGamePassPurchase(player, 20662661)
+            Success = false
+        end
+    end
+
+    return Success
+end
+
 function PlayerProfilesService:LoadProfile(profile)
     local HammerService = Knit.Services.HammerService
     local BucketService = Knit.Services.BucketService
@@ -217,6 +240,7 @@ function PlayerProfilesService:LoadProfile(profile)
         local HammerData = HammerService:GetHammerData(self.Data.Hammer)
         local MaxHeadmuscle = self.TempData.MaxHeadmuscle
         local CurrentHeadmuscule = self.Data.Headmuscle
+        local Player = self._Player
 
         local currentStorageSpace = MaxHeadmuscle - CurrentHeadmuscule
         local headmuscleGained = 0
@@ -224,8 +248,17 @@ function PlayerProfilesService:LoadProfile(profile)
         if currentStorageSpace >= 0 then
             headmuscleGained = headmuscleGained + HammerData.HeadmuscleGain
 
-            --Check for stats, pets, etc
+             --Double Headmuscle Gamepass
+            if MarketplaceService:UserOwnsGamePassAsync(Player.UserId, 6838377) then
+                headmuscleGained = headmuscleGained * 2
+            end
+            
+            --Quintuple Headmuscle Gamepass
+            if MarketplaceService:UserOwnsGamePassAsync(Player.UserId, 7105792) then
+                headmuscleGained = headmuscleGained * 5
+            end
 
+            --Add Headmuscle Gained
             if CurrentHeadmuscule + headmuscleGained <= MaxHeadmuscle then
                 self.Data.Headmuscle = CurrentHeadmuscule + headmuscleGained
             elseif CurrentHeadmuscule + headmuscleGained > MaxHeadmuscle then
@@ -337,6 +370,17 @@ function PlayerProfilesService:CreateProfile(player)
             profile.TempData.LastHammerHead = tick()
             profile.TempData.MaxHeadmuscle = 0
             profile.TempData.HammerDelay = Default_Hitspeed
+            profile.TempData.CanSellAnywhere = false
+
+            --Double Hammerspeed Gamepass
+            if MarketplaceService:UserOwnsGamePassAsync(player.UserId, 16802522) then
+                profile.TempData.HammerDelay =  profile.TempData.HammerDelay/2
+            end
+
+            --Quintuple Hammerspeed Gamepass
+            if MarketplaceService:UserOwnsGamePassAsync(player.UserId, 7105796) then
+                profile.TempData.HammerDelay =  profile.TempData.HammerDelay/5
+            end
 
             profile._Player = player
 

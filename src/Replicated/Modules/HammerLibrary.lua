@@ -89,7 +89,7 @@ local MainHammerData = {
         Gamepass = 7023843;
     };
     ["Golden"] = {
-        Texture = 16198309;
+        Texture = 7203723200;
         Price = 700;
         HeadmuscleGain = 150;
         Gamepass = 7105809;

@@ -11,6 +11,7 @@ Knit.AddControllers(script.Parent:WaitForChild("Controllers"))
 
 ContentProvider:PreloadAsync(ReplicatedStorage.Sounds:GetChildren())
 ContentProvider:PreloadAsync(ReplicatedStorage.Animations:GetChildren())
+ContentProvider:PreloadAsync(ReplicatedStorage.Textures:GetChildren())
 
 
 Knit.Start():Catch(warn)
