@@ -46,7 +46,7 @@ local ProfileTemplate = {
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
-    "PlayerData_Version_1.0",
+    "PlayerData_Version_1.1",
     ProfileTemplate
 )
 
@@ -273,6 +273,7 @@ function PlayerProfilesService:LoadProfile(profile)
                 PlayerProfilesService.Client.ClientHeadmusclePopup:Fire(self._Player, headmuscleGained)
                 self.Data.TotalHeadmuscle = self.Data.TotalHeadmuscle + headmuscleGained
                 ProfilePlayer:SetAttribute("Headmuscle",  self.Data.Headmuscle)
+                ProfilePlayer:SetAttribute("TotalHeadmuscle",  self.Data.TotalHeadmuscle)
             end
         else
            warn(self._Player.Name.." fired addheadmuscle event with full inventory") 
@@ -295,7 +296,7 @@ function PlayerProfilesService:LoadProfile(profile)
     ProfilePlayer:SetAttribute("OwnedBuckets", HttpService:JSONEncode(ProfileData.OwnedBuckets))
 
     ProfilePlayer:SetAttribute("MaxHeadmuscle", profile.TempData.MaxHeadmuscle)
-    ProfilePlayer:SetAttribute("TotalHeadmuscle", profile.TempData.MaxHeadmuscle)
+    ProfilePlayer:SetAttribute("TotalHeadmuscle", profile.TempData.TotalHeadmuscle)
     ProfilePlayer:SetAttribute("HammerDelay", profile.TempData.HammerDelay)
 
     --Leaderboards
@@ -305,7 +306,7 @@ function PlayerProfilesService:LoadProfile(profile)
 
     local TotalHeadmuscleLEaderstat = Instance.new("IntValue")
     TotalHeadmuscleLEaderstat.Value = ProfilePlayer:GetAttribute("TotalHeadmuscle")
-    TotalHeadmuscleLEaderstat.Name = "Total Headmuscle"
+    TotalHeadmuscleLEaderstat.Name = "TotalHM"
     TotalHeadmuscleLEaderstat.Parent = leaderstats
 
     ProfilePlayer:GetAttributeChangedSignal("TotalHeadmuscle"):connect(function()
@@ -321,14 +322,14 @@ function PlayerProfilesService:LoadProfile(profile)
         CashLeaderstat.Value = ProfilePlayer:GetAttribute("Cash")
     end)
 
-    local RebirthLeaderstat = Instance.new("IntValue")
-    RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
-    RebirthLeaderstat.Name = "Rebirths"
-    RebirthLeaderstat.Parent = leaderstats
+  --  local RebirthLeaderstat = Instance.new("IntValue")
+   -- RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
+   -- RebirthLeaderstat.Name = "Rebirths"
+   -- RebirthLeaderstat.Parent = leaderstats
 
-    ProfilePlayer:GetAttributeChangedSignal("Rebirths"):connect(function()
-        RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
-    end)
+   -- ProfilePlayer:GetAttributeChangedSignal("Rebirths"):connect(function()
+    --    RebirthLeaderstat.Value = ProfilePlayer:GetAttribute("Rebirths")
+   -- end)
 
  
 end
