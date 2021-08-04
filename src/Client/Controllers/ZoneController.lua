@@ -14,7 +14,7 @@ local Zone = require(ReplicatedStorage.Modules.Zone)
 local Player = game.Players.LocalPlayer
 
 local HammerShop = Zone.new(workspace.Touch.HammerUpgrade)
-
+local BucketShop = Zone.new(workspace.Touch.BucketUpgrade)
 --Events
 
 
@@ -30,6 +30,10 @@ function ZoneController:KnitInit()
 
     HammerShop.localPlayerEntered:Connect(function()
         UIController:OpenMenu("HammerShop")
+    end)
+
+    BucketShop.localPlayerEntered:Connect(function()
+        UIController:OpenMenu("BucketShop")
     end)
 
 end

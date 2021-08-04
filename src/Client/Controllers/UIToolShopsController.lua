@@ -41,6 +41,13 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
             ["StatType"] = "HM/Hit";
             ["DataType"] = "HeadmuscleGain";
             ["Attribute"] = "OwnedHammers";
+        };
+        ["Bucket"] = {
+            ["UI"] = Pages:FindFirstChild("BucketShop");
+            ["Data"] = BucketLib;
+            ["StatType"] = "HM Storage";
+            ["DataType"] = "HeadmuscleStorage";
+            ["Attribute"] = "OwnedBuckets";
         }
     }
 
@@ -59,6 +66,10 @@ function UIToolShopsController:LoadShopsInfo(MainUI)
     for toolType,toolTypeData in pairs(Shops) do
         local mainScrollElements = toolTypeData.UI.Main.Scroll:GetChildren()
         --print(HttpService:JSONDecode(Player:GetAttribute(Shops[toolType].Attribute)))
+        
+        if Player:GetAttribute(Shops[toolType].Attribute) == nil then
+            repeat wait() print("Test") until Player:GetAttribute(Shops[toolType].Attribute)
+        end
 
         local PlayerTools = HttpService:JSONDecode(Player:GetAttribute(Shops[toolType].Attribute))
         

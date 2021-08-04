@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Knit = require(ReplicatedStorage.Knit)
 local HammerLibrary = require(ReplicatedStorage.Modules.HammerLibrary)
+local BucketLibrary = require(ReplicatedStorage.Modules.BucketLibrary)
+
 local ProfileService = Knit.GetService("PlayerProfilesService")
 
 --Variables
@@ -13,7 +15,7 @@ local ToolShopService = Knit.CreateService {
 
 local ToolTypeData = {
     ["Hammer"] = HammerLibrary;
-
+    ["Bucket"] = BucketLibrary;
 
 }
 

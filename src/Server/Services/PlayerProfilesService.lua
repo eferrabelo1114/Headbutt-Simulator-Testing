@@ -175,13 +175,16 @@ function PlayerProfilesService:LoadProfile(profile)
     function profile:ChangeTool(ToolName, ToolType)
         self.Data[ToolType] = ToolName
         self._Player:SetAttribute(ToolType, ToolName)
-
+        
         if self._Player.Character then
             if ToolType == "Hammer" then
                 PlayerProfilesService:EquipHammer(ProfilePlayer)
             elseif ToolType == "Bucket" then
-                --Equip Buckket
-                print("Equip Bucket")
+                local BucketStorage = (BucketService:GetBucketData(ToolName)).HeadmuscleStorage
+
+                PlayerProfilesService:EquipBucket(ProfilePlayer)
+                self._Player:SetAttribute("MaxHeadmuscle", BucketStorage)
+                self.TempData.MaxHeadmuscle = BucketStorage
             end
         end
     end

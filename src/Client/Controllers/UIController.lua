@@ -92,10 +92,19 @@ function UIController:LoadCurrencyHud(MainUI)
     local HUD = MainUI:FindFirstChild("UI"):FindFirstChild("HUD")
     local Currency = HUD:WaitForChild("Currency")
 
-    UIMaid:GiveTask(Player:GetAttributeChangedSignal("Headmuscle"):Connect(function()
+    local function updateHeadmuscleDisplay()
         local PlayerHeadmuscle = Player:GetAttribute("Headmuscle")
         local PlayerMaxHeadmuscle = Player:GetAttribute("MaxHeadmuscle")
         Currency.Backpack.Amount.Text = FormatLib.FormatCompact(PlayerHeadmuscle).."/"..FormatLib.FormatCompact(PlayerMaxHeadmuscle)
+    end
+
+
+    UIMaid:GiveTask(Player:GetAttributeChangedSignal("Headmuscle"):Connect(function()
+        updateHeadmuscleDisplay()
+    end))
+
+    UIMaid:GiveTask(Player:GetAttributeChangedSignal("MaxHeadmuscle"):Connect(function()
+        updateHeadmuscleDisplay()
     end))
 
     UIMaid:GiveTask(Player:GetAttributeChangedSignal("Cash"):Connect(function()
