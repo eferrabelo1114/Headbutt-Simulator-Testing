@@ -84,13 +84,13 @@ local MainHammerData = {
     --Gamepass Hammers
     ["Rainbow"] = {
         Texture = 3578310662;
-        Price = 450;
+        Price = 499;
         HeadmuscleGain = 35;
         Gamepass = 7023843;
     };
     ["Golden"] = {
         Texture = 7203723200;
-        Price = 700;
+        Price = 900;
         HeadmuscleGain = 150;
         Gamepass = 7105809;
     };
