@@ -23,6 +23,8 @@ local UIMaid = Maid.new()
 local ActiveElements = {}
 local UIPages = {}
 
+local ToggleMusicDB = false
+
 --Tweems
 local UIHoverTween = TweenInfo.new(0)
 
@@ -86,6 +88,28 @@ function UIController:LoadUIAnimations(MainUI)
             UIElement.Visible = false
         end
     end
+end
+
+
+function UIController:ConnectToggleMusic(MainUI)
+    local HUD = MainUI:FindFirstChild("UI"):FindFirstChild("HUD")
+    local Tabs3 = HUD:WaitForChild("Tabs3")
+    Tabs3.ToggleMusic.Text.Text = "Toggle Music Off"
+
+    Tabs3.ToggleMusic.MouseButton1Click:connect(function()
+        if not ToggleMusicDB then
+            ToggleMusicDB = true
+            ReplicatedStorage.Music.Value = not ReplicatedStorage.Music.Value
+
+            if ReplicatedStorage.Music.Value then
+                Tabs3.ToggleMusic.Text.Text = "Toggle Music Off"
+            else
+                Tabs3.ToggleMusic.Text.Text = "Toggle Music On"
+            end
+
+            ToggleMusicDB = false
+        end
+    end)
 end
 
 function UIController:LoadCurrencyHud(MainUI)
@@ -180,6 +204,7 @@ function UIController:ConnectUI()
 
     --Connect HUD
    self:LoadCurrencyHud(MainUI)
+   self:ConnectToggleMusic(MainUI)
 end
 
 function UIController:KnitInit()
