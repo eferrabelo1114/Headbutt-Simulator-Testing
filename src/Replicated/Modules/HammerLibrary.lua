@@ -3,7 +3,7 @@ local MainHammerData = {
     ["Default"] = {
         Texture = 16198294;
         Price = 0;
-        HeadmuscleGain = 10;
+        HeadmuscleGain = 1;
     };
     ["Dirt"] = {
         Texture = 3579168125;
@@ -86,11 +86,13 @@ local MainHammerData = {
         Texture = 3578310662;
         Price = 450;
         HeadmuscleGain = 35;
+        Gamepass = 7023843;
     };
     ["Golden"] = {
         Texture = 16198309;
         Price = 700;
         HeadmuscleGain = 150;
+        Gamepass = 7105809;
     };
 
 }

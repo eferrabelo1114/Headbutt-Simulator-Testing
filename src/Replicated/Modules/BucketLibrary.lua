@@ -86,6 +86,7 @@ local MainHammerData = {
         Texture = 6412632993;
         Price = 400;
         HeadmuscleStorage = 1000;
+        Gamepass = 20662654;
     };
 }
 

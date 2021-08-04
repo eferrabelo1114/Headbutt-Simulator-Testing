@@ -1,5 +1,6 @@
 --Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local Knit = require(ReplicatedStorage.Knit)
 local HammerLibrary = require(ReplicatedStorage.Modules.HammerLibrary)
@@ -36,16 +37,21 @@ function ToolShopService.Client:PurchaseTool(player, toolType, toolName)
             local tool = ToolTypeData[toolType][toolName]
 
             if not Profile:OwnsTool(toolName, toolType) then
+                if tool.Gamepass == nil then
+                    if Profile.Data.Cash >= tool.Price then
 
-                if Profile.Data.Cash >= tool.Price then
+                        Profile:PurchaseTool(toolName, toolType, tool.Price)
+                        Success = true
+                        Response = "Purchased"
+                    else
+                        Response = "Cannot Afford!"
+                    end
+                elseif tool.Gamepass then
+                   local GamepassID = tool.Gamepass
 
-                    Profile:PurchaseTool(toolName, toolType, tool.Price)
-                    Success = true
-                    Response = "Purchased"
-                else
-                    Response = "Cannot Afford!"
+                   MarketplaceService:PromptGamePassPurchase(player, GamepassID)
+                   Success = true
                 end
-
             end
 
         end
